@@ -1,0 +1,25 @@
+# Python
+fastapi-env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+fastapi-env
+
+# Node.js
+node_modules/
+*.log
+
+# Environment files
+.env
+.env.*
+
+# MacOS
+.DS_Store
+
+# Editor files
+.vscode/
+.idea/
