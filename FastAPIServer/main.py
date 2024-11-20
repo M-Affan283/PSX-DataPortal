@@ -1,11 +1,13 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+import os
 import pdfplumber
 import databases
 import sqlalchemy
 from sqlalchemy import Table, Column, String, Float, MetaData, UniqueConstraint
 from dotenv import load_dotenv
+import datetime
 
 # Load environment variables from .env.local
 load_dotenv(".env.local")
@@ -22,7 +24,7 @@ companies = Table(
     "companies",
     metadata,
     Column("company_name", String, primary_key=True),
-    Column("file_name", String, primary_key=True),
+    Column("date", String, primary_key=True),
     Column("turnover", Float),
     Column("prev_rate", Float),
     Column("open_rate", Float),
@@ -30,7 +32,7 @@ companies = Table(
     Column("lowest_rate", Float),
     Column("last_rate", Float),
     Column("difference", Float),
-    UniqueConstraint("company_name", "file_name", name="company_file_uc")
+    UniqueConstraint("company_name", "date", name="company_date_uc")
 )
 
 # Create the database engine and bind metadata
@@ -58,6 +60,31 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
+
+# Function to parse the file name and extract date
+def parse_file_date(file_name):
+    try:
+        # Example format: "closingRates_202401nov"
+        print("in parsing file date", file_name)
+        prefix, raw_date = file_name.split("_")
+        print("raw date is: ", raw_date)
+        year = raw_date[:4]
+        day = raw_date[4:6]
+        month_str = raw_date[6:9].lower()
+        month = {
+            "jan": "01", "feb": "02", "mar": "03", "apr": "04",
+            "may": "05", "jun": "06", "jul": "07", "aug": "08",
+            "sep": "09", "oct": "10", "nov": "11", "dec": "12"
+        }.get(month_str, "00")  # Default to "00" for invalid months
+
+        if month == "00":
+            raise ValueError("Invalid month in file name.")
+
+        # Format as DD-MM-YY
+        formatted_date = f"{day}-{month}-{year[2:]}"
+        return formatted_date
+    except Exception as e:
+        raise ValueError(f"Error parsing date from file name: {file_name}. Error: {e}")
 
 # Function to parse PDF data
 def parse_pdf_table(pdf_path):
@@ -118,7 +145,16 @@ def parse_pdf_table(pdf_path):
 async def upload_file(file: UploadFile = File(...)):
     file_name = file.filename  # Get the uploaded file name
 
+    print("file name: ", file_name)
+
+    try:
+        # Parse the date from the file name
+        date = parse_file_date(file_name)
+    except ValueError as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
     # Save the uploaded file temporarily
+    print("is this printed?")
     with open("temp.pdf", "wb") as temp_file:
         content = await file.read()
         temp_file.write(content)
@@ -126,7 +162,7 @@ async def upload_file(file: UploadFile = File(...)):
     # Parse the PDF to get company data
     rows = parse_pdf_table("temp.pdf")
     
-    # Insert each row into the companies table with file_name as a composite key
+    # Insert each row into the companies table with date as part of the composite key
     for row in rows:
         company_name = row[0]
         turnover = float(row[1])
@@ -140,7 +176,7 @@ async def upload_file(file: UploadFile = File(...)):
         # Construct the insert query
         query = companies.insert().values(
             company_name=company_name,
-            file_name=file_name,
+            date=date,
             turnover=turnover,
             prev_rate=prev_rate,
             open_rate=open_rate,
@@ -152,3 +188,33 @@ async def upload_file(file: UploadFile = File(...)):
         await database.execute(query)
 
     return JSONResponse(content={"message": "Data uploaded successfully."})
+
+# Endpoint to check server health
+@app.get("/health")
+async def health_check():
+    return JSONResponse(content={"message": "Server is healthy"}, status_code=200)
+
+# Root endpoint
+@app.get("/")
+async def root():
+    return JSONResponse(content={"message": "Server is healthy"}, status_code=200)
+
+@app.get("/getData")
+async def get_data():
+    query = companies.select()
+    rows = await database.fetch_all(query)
+    data = [
+        {
+            "company_name": row["company_name"],
+            "date": row["date"],
+            "turnover": row["turnover"],
+            "prev_rate": row["prev_rate"],
+            "open_rate": row["open_rate"],
+            "highest_rate": row["highest_rate"],
+            "lowest_rate": row["lowest_rate"],
+            "last_rate": row["last_rate"],
+            "difference": row["difference"],
+        }
+        for row in rows
+    ]
+    return JSONResponse(content={"data": data}, status_code=200)
