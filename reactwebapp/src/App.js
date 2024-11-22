@@ -44,23 +44,6 @@ function App() {
     }
   };
 
-  // Fetch data for chart
-  const fetchDataForGraph = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/getData");
-      if (response.ok) {
-        const data = await response.json();
-        processChartData(data.data);
-      } else {
-        console.error("Failed to fetch data.");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Process data into Chart.js format
   const processChartData = (data) => {
@@ -90,6 +73,25 @@ function App() {
   };
 
   useEffect(() => {
+
+    // Fetch data for chart
+    const fetchDataForGraph = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("http://localhost:8000/getData");
+        if (response.ok) {
+          const data = await response.json();
+          processChartData(data.data);
+        } else {
+          console.error("Failed to fetch data.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchDataForGraph();
   }, []);
 
