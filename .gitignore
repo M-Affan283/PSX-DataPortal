@@ -23,3 +23,6 @@ node_modules/
 # Editor files
 .vscode/
 .idea/
+
+# Terraform temp.tf file
+temp.tf
