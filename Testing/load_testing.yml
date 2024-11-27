@@ -1,0 +1,47 @@
+config:
+  target: "https://p06-study-group-finder.vercel.app/api"  # Replace with your CloudFront URL or Application Load Balancer URL
+  phases:
+    - name: Load Testing
+      duration: 1  # Duration of the test in seconds
+      arrivalRate: 5  # Number of virtual users per second
+  defaults:
+    headers:
+      Content-Type: "application/json"  # Adjust headers as required
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IjI1MTAwMTAwQGx1bXMuZWR1LnBrIiwiaWF0IjoxNzMyNjE5NjU2LCJleHAiOjE3MzI4Nzg4NTZ9.0q7s7-vOc3NnaL30E1z_iOO-QoOP2b_5AE4JEGp4qLg"  # Use if endpoints require authentication
+
+scenarios:
+  - name: "Upload File to S3"
+    weight: 20
+    flow:
+      - post:
+          url: "___"  # Replace with your API endpoint
+          json:
+            email: "___"  # Path to the file being uploaded
+            password: "___"
+
+  - name: "Fetch Insights from RDS"
+    weight: 20
+    flow:
+      - get:
+          url: "/session/"  # Replace with your API endpoint for fetching insights
+
+  # - name: "Fetch Insights from RDS 2"
+  #   weight: 80
+  #   flow:
+  #     - get:
+  #         url: "/session/created"  # Replace with your API endpoint for fetching insights
+
+  # - name: "Access Frontend Pages"
+  #   flow:
+  #     - get:
+  #         url: "/"  # Replace with the main route of your application
+  #     - get:
+  #         url: "/dashboard"  # Example route for a user dashboard
+
+  # - name: "Trigger Lambda Insights Processing"
+  #   flow:
+  #     - post:
+  #         url: "/process"  # Replace with your Lambda trigger endpoint
+  #         json:
+  #           fileId: "file-id-placeholder"
+  #           operation: "analyze"
