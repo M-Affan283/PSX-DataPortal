@@ -7,7 +7,12 @@ __pycache__/
 *.db
 *.sqlite3
 
+#custom git ignores:
 fastapi-env
+.terraform
+.terraform*
+terraform*
+temp.pdf
 
 # Node.js
 node_modules/

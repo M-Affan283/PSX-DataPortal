@@ -7,6 +7,8 @@ import Stats from "./Stats";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
+const LAMBDA_API = "https://cdxwmevp87.execute-api.us-east-1.amazonaws.com"
+
 function App() {
     const [file, setFile] = useState(null);
     const [chartData, setChartData] = useState(null);
@@ -22,31 +24,45 @@ function App() {
         e.preventDefault();
         if (!file) return;
 
-        const formData = new FormData();
-        formData.append("file", file);
-
         try {
             setIsLoading(true);
-            const response = await fetch("http://localhost:8000/upload", {
-                method: "POST",
-                body: formData,
-            });
 
-            console.log(JSON.stringify(response));
-            console.log(formData);
+            // Read the file as Base64
+            const reader = new FileReader();
+            reader.onload = async () => {
+                const fileContentBase64 = reader.result.split(",")[1]; // Extract base64 part
+                const payload = {
+                    file_name: file.name,
+                    file_content: fileContentBase64,
+                };
 
-            if (response.ok) {
-                alert("File uploaded successfully!");
-            } else {
-                console.error("Failed to upload file.");
-            }
+                // Send file name and content to the server
+                const response = await fetch(LAMBDA_API, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.ok) {
+                    alert("File uploaded successfully!");
+                } else {
+                    console.error("Failed to upload file.");
+                }
+            };
+
+            reader.onerror = (error) => {
+                console.error("Error reading file:", error);
+            };
+
+            reader.readAsDataURL(file); // Read file as Base64
         } catch (error) {
             console.error("Error:", error);
         } finally {
             setIsLoading(false);
         }
     };
-
 
     // Process data into Chart.js format
     const processChartData = (data) => {
