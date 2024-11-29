@@ -24,10 +24,8 @@ function App() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!file) return;
-
         try {
             setIsLoading(true);
-
             // Read the file as Base64
             const reader = new FileReader();
             reader.onload = async () => {
@@ -36,28 +34,40 @@ function App() {
                     file_name: file.name,
                     file_content: fileContentBase64,
                 };
-
-                // Send file name and content to the lambda function to store in S3 and fastapi to parse and store in database
-                const response = await fetch(LAMBDA_API, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(payload),
-                });
-
-                if (response.ok) {
-                    alert("File uploaded successfully!");
-                } else {
-                    console.error("Failed to upload file.");
-                    alert("File could not be uploaded");
+                try {
+                    // Send concurrent requests to LAMBDA_API and FASTAPI_API
+                    const [lambdaResponse, fastapiResponse] = await Promise.all([
+                        fetch(LAMBDA_API, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(payload),
+                        }),
+                        fetch(FASTAPI_API, {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(payload),
+                        }),
+                    ]);
+    
+                    // Check if both requests were successful
+                    if (lambdaResponse.ok && fastapiResponse.ok) {
+                        alert("File uploaded and processed successfully!");
+                    } else {
+                        console.error("One or both requests failed.");
+                        alert("There was an issue uploading the file.");
+                    }
+                } catch (error) {
+                    console.error("Error sending requests:", error);
+                    alert("An error occurred while processing the file.");
                 }
             };
-
             reader.onerror = (error) => {
                 console.error("Error reading file:", error);
             };
-
             reader.readAsDataURL(file); // Read file as Base64
         } catch (error) {
             console.error("Error:", error);
