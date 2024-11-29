@@ -1,0 +1,8 @@
+fastapi[standard]
+uvicorn
+pdfplumber
+databases
+sqlalchemy
+python-dotenv
+asyncpg
+psycopg2-binary

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
     Chart as ChartJS,
@@ -31,6 +31,8 @@ ChartJS.register(
     TimeScale 
 );
 
+const FASTAPI_API = "fastapi-alb-390416424.us-east-1.elb.amazonaws.com"
+
 function Stats() {
     const [chartData, setChartData] = useState([]);
     const [timeSeriesData, setTimeSeriesData] = useState(null);
@@ -47,7 +49,7 @@ function Stats() {
         difference: PolarArea,
     };
 
-    const graphColors = {
+    const graphColors = useMemo(() => ({
         turnover: "rgba(75, 192, 192, 0.5)",
         prev_rate: "rgba(54, 162, 235, 0.5)",
         open_rate: "rgba(153, 102, 255, 0.5)",
@@ -55,7 +57,7 @@ function Stats() {
         lowest_rate: "rgba(255, 99, 132, 0.5)",
         last_rate: "rgba(75, 192, 192, 0.5)",
         difference: ["rgba(255, 99, 132, 0.5)", "rgba(54, 162, 235, 0.5)"],
-    };
+    }), []);
 
     // Function to process general chart data
     const processChartData = useCallback((data) => {
@@ -90,7 +92,7 @@ function Stats() {
             const companyData = data
                 .filter((item) => item.company_name === company)
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
-            const dates = companyData.map((item) => item.date);
+            // const dates = companyData.map((item) => item.date);
             const highestRates = companyData.map((item) => item.highest_rate);
 
             return {
@@ -115,7 +117,7 @@ function Stats() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch("http://localhost:8000/getData");
+                const response = await fetch(`http://${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     processChartData(data.data);

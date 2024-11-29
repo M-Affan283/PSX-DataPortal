@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from "chart.js";
 import { Bar } from "react-chartjs-2";
 import "./App.css"; // Add a CSS file for styling
-import Stats from "./Stats";
+// import Stats from "./Stats";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const LAMBDA_API = "https://cdxwmevp87.execute-api.us-east-1.amazonaws.com"
+const FASTAPI_API = "fastapi-alb-390416424.us-east-1.elb.amazonaws.com"
 
 function App() {
     const [file, setFile] = useState(null);
@@ -36,7 +37,7 @@ function App() {
                     file_content: fileContentBase64,
                 };
 
-                // Send file name and content to the server
+                // Send file name and content to the lambda function to store in S3 and fastapi to parse and store in database
                 const response = await fetch(LAMBDA_API, {
                     method: "POST",
                     headers: {
@@ -97,7 +98,7 @@ function App() {
         const fetchDataForGraph = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch("http://localhost:8000/getData");
+                const response = await fetch(`http://${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     console.log(data);

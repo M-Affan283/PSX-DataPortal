@@ -9,10 +9,14 @@ __pycache__/
 
 #custom git ignores:
 fastapi-env
-.terraform
-.terraform*
-terraform*
+# .terraform
+# .terraform*
+# terraform*
 temp.pdf
+TerraformDeployment/Main/.terraform
+TerraformDeployment/Main/.terraform.lock.hcl
+TerraformDeployment/Main/*.tfstate
+TerraformDeployment/Main/*.tfstate.backup
 
 # Node.js
 node_modules/
