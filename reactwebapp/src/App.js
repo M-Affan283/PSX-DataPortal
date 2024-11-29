@@ -7,8 +7,8 @@ import "./App.css"; // Add a CSS file for styling
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const LAMBDA_API = "https://cdxwmevp87.execute-api.us-east-1.amazonaws.com"
-const FASTAPI_API = "fastapi-alb-390416424.us-east-1.elb.amazonaws.com"
+const LAMBDA_API = ""
+const FASTAPI_API = ""
 
 function App() {
     const [file, setFile] = useState(null);
@@ -50,6 +50,7 @@ function App() {
                     alert("File uploaded successfully!");
                 } else {
                     console.error("Failed to upload file.");
+                    alert("File could not be uploaded");
                 }
             };
 
