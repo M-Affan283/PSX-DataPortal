@@ -84,4 +84,9 @@ resource "aws_lb_target_group" "fastapi_target_group" {
   }
 
 }
+
+output "fastapi_alb_dns" {
+  value = aws_lb.fastapi_alb.dns_name
+  
+}
 //-------------------------- ALB SETUP END -------------------------- //

@@ -52,3 +52,27 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy_attachment"
   policy_arn = aws_iam_policy.ecs_task_execution_policy.arn
   role = aws_iam_role.ecs_task_execution_role.name
 }
+
+resource "aws_iam_policy" "ecs_task_logs_policy" {
+  name        = "EcsTaskLogsPolicy"
+  description = "Policy to allow ECS tasks to write logs to CloudWatch"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Effect   = "Allow"
+        Resource = "arn:aws:logs:us-east-1:*:log-group:/aws/ecs/fastapi-service:*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_logs_policy_attachment" {
+  policy_arn = aws_iam_policy.ecs_task_logs_policy.arn
+  role       = aws_iam_role.ecs_task_execution_role.name
+}

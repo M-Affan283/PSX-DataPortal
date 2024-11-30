@@ -8,13 +8,20 @@ resource "aws_ecs_task_definition" "fastapi_task_definition" {
     container_definitions = jsonencode([{
         name = "ecr-fastapi-app"
         image = "241533118783.dkr.ecr.us-east-1.amazonaws.com/fastapiserver:latest"
-        # command = ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"] //remove this and check after trying with this
         memory = 1024 //1GB
         cpu = 512 //0.5 vCPU
         portMappings = [{
             containerPort = 80 // FastAPI app runs on port 80 with uvicorn. Provide the uvicorn congif in docker img
             hostPort = 80 // ALB forwards to port 80
         }]
+        logConfiguration = {
+            logDriver = "awslogs"
+            options = {
+                "awslogs-group" = aws_cloudwatch_log_group.fastapi_log_group.name
+                "awslogs-region" = "us-east-1"
+                "awslogs-stream-prefix" = "ecs"
+            }
+        }
     }])
 
     requires_compatibilities = ["FARGATE"]
@@ -44,4 +51,46 @@ resource "aws_ecs_service" "fastapi_service" {
 
     depends_on = [ aws_lb_listener.fastapi_http_listener ]
   
+}
+
+
+//CLOUDWATCH + SNS ALARM FOR ANY ERROR IN FASTAPI SERVICE
+
+resource "aws_cloudwatch_log_group" "fastapi_log_group" {
+    name = "/aws/ecs/fastapi-service"
+    retention_in_days = 7
+}
+
+resource "aws_cloudwatch_log_metric_filter" "server_error_filter" {
+    name = "FastAPIServerErrorFilter"
+    log_group_name = aws_cloudwatch_log_group.fastapi_log_group.name
+    pattern = "SERVER ERROR"
+    metric_transformation {
+        name = "ServerError"
+        namespace = "FastAPI/Metrics"
+        value = "1"
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "server_error_alarm" {
+    alarm_name = "fastapi-server-error-alarm"
+    comparison_operator = "GreaterThanOrEqualToThreshold"
+    evaluation_periods = 1
+    metric_name = aws_cloudwatch_log_metric_filter.server_error_filter.metric_transformation[0].name
+    namespace = aws_cloudwatch_log_metric_filter.server_error_filter.metric_transformation[0].namespace
+    period = 60
+    statistic = "Sum"
+    threshold = 1
+
+    alarm_actions = [aws_sns_topic.fastapi_alerts.arn]
+}
+
+resource "aws_sns_topic" "fastapi_alerts" {
+    name = "FastAPI-Alert-Topic"
+}
+
+resource "aws_sns_topic_subscription" "fastapi_alerts_subscription" {
+    topic_arn = aws_sns_topic.fastapi_alerts.arn
+    protocol = "email"
+    endpoint = "<your-email>"
 }

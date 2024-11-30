@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import os
@@ -42,8 +42,12 @@ companies = Table(
 )
 
 # Create the database engine and bind metadata
-engine = sqlalchemy.create_engine(DATABASE_URL)
-metadata.create_all(engine)
+try:
+    engine = sqlalchemy.create_engine(DATABASE_URL)
+    metadata.create_all(engine)
+except Exception as e:
+    print("[SERVER ERROR] In creating engine, Error: ", e)
+    raise ValueError(f"Error creating engine: {e}")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -60,8 +64,12 @@ app.add_middleware(
 # Connect to Database on Startup
 @app.on_event("startup")
 async def startup():
-    await database.connect()
-    print("[SERVER LOGS] server has started and db is connected")
+    try:
+        await database.connect()
+        print("[SERVER LOGS] server has started and db is connected")
+    except Exception as e:
+        print("[SERVER ERROR] In startup function, Error: ", e)
+        # raise ValueError(f"Error connecting to database: {e}")
 
 # Disconnect Database on Shutdown
 @app.on_event("shutdown")
@@ -152,13 +160,17 @@ def parse_pdf_table(pdf_path):
         return Technology_section
     except Exception as e:
         print("[SERVER ERROR] In parse_pdf_table function, Error: ", e)
-        raise ValueError(f"Error parsing date from file name: {file_name}. Error: {e}")
+        raise ValueError(f"Error parsing data from file path: {pdf_path}. Error: {e}")
 
 # Endpoint to upload and parse PDF, then insert data into the database
 @app.post("/upload")
-async def upload_file(payload: FileUploadPayload):
+async def upload_file(payload: FileUploadPayload = None):
     print("[SERVER LOGS] upload to db route invoked")
     try: 
+
+        if payload is None:
+            raise HTTPException(status_code=400, detail="Invalid payload")
+
         file_name = payload.file_name
         file_content_base64 = payload.file_content
         try:
@@ -203,7 +215,7 @@ async def upload_file(payload: FileUploadPayload):
         print("[SERVER LOGS] upload to db successful")
         return JSONResponse(content={"message": "Data uploaded successfully."})
     except Exception as e:
-        print("[SERVER ERROR] In upload route, Error: ", e)
+        print("[SERVER ERROR] In upload route")
         raise ValueError(f"Error while trying to upload file Error: {e}")
 
 # Endpoint to check server health

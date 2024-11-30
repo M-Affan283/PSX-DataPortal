@@ -7,8 +7,8 @@ import "./App.css"; // Add a CSS file for styling
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const LAMBDA_API = ""
-const FASTAPI_API = ""
+const LAMBDA_API = process.env.REACT_APP_LAMBDA_API;
+const FASTAPI_API = process.env.REACT_APP_FASTAPI;
 
 function App() {
     const [file, setFile] = useState(null);
@@ -44,7 +44,7 @@ function App() {
                             },
                             body: JSON.stringify(payload),
                         }),
-                        fetch(FASTAPI_API, {
+                        fetch(`${FASTAPI_API}/upload`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
@@ -52,6 +52,20 @@ function App() {
                             body: JSON.stringify(payload),
                         }),
                     ]);
+
+                    //just fastapi url call
+                    // const fastapiResponse = await fetch(FASTAPI_API, {
+                    //     method: "POST",
+                    //     headers: {
+                    //         "Content-Type": "application/json",
+                    //     },
+                    //     body: JSON.stringify(payload),
+                    // });
+                    
+                    // const data = await fastapiResponse.json();
+                    // console.log(data);
+
+
     
                     // Check if both requests were successful
                     if (lambdaResponse.ok && fastapiResponse.ok) {
@@ -109,7 +123,7 @@ function App() {
         const fetchDataForGraph = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`http://${FASTAPI_API}/getData`);
+                const response = await fetch(`${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     console.log(data);

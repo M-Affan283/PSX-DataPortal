@@ -31,7 +31,7 @@ ChartJS.register(
     TimeScale 
 );
 
-const FASTAPI_API = "fastapi-alb-390416424.us-east-1.elb.amazonaws.com"
+const FASTAPI_API = process.env.REACT_APP_FASTAPI;
 
 function Stats() {
     const [chartData, setChartData] = useState([]);
@@ -117,7 +117,7 @@ function Stats() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`http://${FASTAPI_API}/getData`);
+                const response = await fetch(`${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     processChartData(data.data);
