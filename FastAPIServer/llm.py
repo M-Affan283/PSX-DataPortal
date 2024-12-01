@@ -2,7 +2,7 @@ import boto3
 import json
 
 aws_access_key_id = your key
-aws_secret_access_key = your key 
+aws_secret_access_key = your key
 region_name = 'us-east-1' 
 
 session = boto3.Session(
@@ -27,6 +27,7 @@ def get_stock_market_response(user_prompt):
                     "You can predict stock trends, analyze the performance of stocks, and answer general questions about the stock market. "
                     "You are knowledgeable about market patterns, financial analysis, and trading strategies. "
                     "Your goal is to assist users with stock-related inquiries and provide insights. "
+                    "You must keep your responses consize and to the point."
                     f"Here is a user's question: {user_prompt}"
                 )
             }
@@ -45,6 +46,6 @@ def get_stock_market_response(user_prompt):
     return generated_text
 
 # example promtt
-user_prompt = "What are the top-performing stocks in the tech sector this month?"
-response = get_stock_market_response(user_prompt)
-print("Stock Market Response:", response)
+# user_prompt = "What are the top-performing stocks in the tech sector this month?"
+# response = get_stock_market_response(user_prompt)
+# print("Stock Market Response:", response)

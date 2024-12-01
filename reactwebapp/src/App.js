@@ -8,8 +8,8 @@ import "./App.css"; // Add a CSS file for styling
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const LAMBDA_API = process.env.REACT_APP_LAMBDA_API;
-// const FASTAPI_API = process.env.REACT_APP_FASTAPI;
-const FASTAPI_API = "localhost:8000";
+const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+// const FASTAPI_API = "localhost:8000";
 
 function App() {
     const [file, setFile] = useState(null);
