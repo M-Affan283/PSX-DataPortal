@@ -1,114 +1,52 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
-import {
-    Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    RadialLinearScale,
-    BarElement,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    ArcElement,
-    TimeScale,
-} from "chart.js";
-import { Bar, Line, PolarArea } from "react-chartjs-2";
+import {Chart as ChartJS, CategoryScale, LinearScale, RadialLinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, TimeScale} from "chart.js";
+import { Line } from "react-chartjs-2";
 import "./Stats.css";
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    RadialLinearScale,
-    BarElement,
-    LineElement,
-    PointElement,
-    Title,
-    Tooltip,
-    Legend,
-    ArcElement,
-    TimeScale 
+ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, TimeScale
 );
 
 const FASTAPI_API = process.env.REACT_APP_FASTAPI;
 
 function Stats() {
-    const [chartData, setChartData] = useState([]);
-    const [timeSeriesData, setTimeSeriesData] = useState(null);
+    const [timeSeriesData, setTimeSeriesData] = useState({});
     const [isLoading, setIsLoading] = useState(false);
     const dataFetchedRef = useRef(false);
 
-    const graphTypes = {
-        turnover: Bar,
-        prev_rate: Line,
-        open_rate: Line,
-        highest_rate: Line,
-        lowest_rate: Line,
-        last_rate: Line,
-        difference: PolarArea,
-    };
+    const graphColors = useMemo(() => ["rgba(255, 99, 132, 0.5)", "rgba(54, 162, 235, 0.5)", "rgba(255, 206, 86, 0.5)", "rgba(75, 192, 192, 0.5)", "rgba(153, 102, 255, 0.5)", "rgba(255, 159, 64, 0.5)", "rgba(199, 199, 199, 0.5)"], []);
 
-    const graphColors = useMemo(() => ({
-        turnover: "rgba(75, 192, 192, 0.5)",
-        prev_rate: "rgba(54, 162, 235, 0.5)",
-        open_rate: "rgba(153, 102, 255, 0.5)",
-        highest_rate: "rgba(255, 206, 86, 0.5)",
-        lowest_rate: "rgba(255, 99, 132, 0.5)",
-        last_rate: "rgba(75, 192, 192, 0.5)",
-        difference: ["rgba(255, 99, 132, 0.5)", "rgba(54, 162, 235, 0.5)"],
-    }), []);
-
-    // Function to process general chart data
-    const processChartData = useCallback((data) => {
-        const parameters = ["turnover", "prev_rate", "open_rate", "highest_rate", "lowest_rate", "last_rate", "difference"];
-        const processedData = parameters.map((param) => {
-            const labels = data.map((item) => item.company_name);
-            const values = data.map((item) => item[param]);
-
-            const color = Array.isArray(graphColors[param]) ? graphColors[param][0] : graphColors[param];
-            const borderColor = typeof color === "string" ? color.replace("0.5", "1") : "rgba(0, 0, 0, 1)";
-
-            return {
-                parameter: param,
-                labels,
-                datasets: [
-                    {
-                        label: param,
-                        data: values,
-                        backgroundColor: color,
-                        borderColor,
-                        borderWidth: 1,
-                    },
-                ],
-            };
-        });
-        setChartData(processedData);
-    }, [graphColors]);
-
+    // Function to process time series data for each parameter
     const processTimeSeriesData = useCallback((data) => {
-        const companies = [...new Set(data.map((item) => item.company_name))]; 
-        const datasets = companies.map((company, index) => {
-            const companyData = data
-                .filter((item) => item.company_name === company)
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
-            // const dates = companyData.map((item) => item.date);
-            const highestRates = companyData.map((item) => item.highest_rate);
+        const parameters = ["turnover", "prev_rate", "open_rate", "highest_rate", "lowest_rate", "last_rate", "difference"];
+        const companies = [...new Set(data.map((item) => item.company_name))]; // Get unique company names
 
-            return {
-                label: company,
-                data: highestRates,
-                fill: false,
-                borderColor: `hsl(${(index * 360) / companies.length}, 70%, 50%)`, 
-                tension: 0.1,
+        const processedData = parameters.reduce((result, param) => {
+            const datasets = companies.map((company, index) => {
+                const companyData = data
+                    .filter((item) => item.company_name === company)
+                    .sort((a, b) => new Date(a.date) - new Date(b.date)); // Sort by date
+                const values = companyData.map((item) => item[param]);
+
+                return {
+                    label: company,
+                    data: values,
+                    fill: false,
+                    borderColor: graphColors[index % graphColors.length], // Cycle through colors
+                    tension: 0.1,
+                };
+            });
+
+            result[param] = {
+                labels: [...new Set(data.map((item) => item.date))].sort((a, b) => new Date(a) - new Date(b)), // Unique sorted dates
+                datasets,
             };
-        });
 
-        setTimeSeriesData({
-            labels: [...new Set(data.map((item) => item.date))].sort((a, b) => new Date(a) - new Date(b)), 
-            datasets,
-        });
-    }, []);
+            return result;
+        }, {});
+
+        setTimeSeriesData(processedData);
+    }, [graphColors]);
 
     useEffect(() => {
         if (dataFetchedRef.current) return;
@@ -117,10 +55,9 @@ function Stats() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`${FASTAPI_API}/getData`);
+                const response = await fetch(`http://${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
-                    processChartData(data.data);
                     processTimeSeriesData(data.data);
                 } else {
                     console.error("Failed to fetch data.");
@@ -133,7 +70,7 @@ function Stats() {
         };
 
         fetchData();
-    }, [processChartData, processTimeSeriesData]);
+    }, [processTimeSeriesData]);
 
     return (
         <div className="stats-container">
@@ -146,39 +83,18 @@ function Stats() {
                 <p>Loading data...</p>
             ) : (
                 <>
-                    {chartData.map((chart, index) => {
-                        const GraphComponent = graphTypes[chart.parameter];
-                        return (
-                            <div key={index} className="chart-section">
-                                <h2>{chart.parameter.toUpperCase()} Graph</h2>
-                                <GraphComponent
-                                    data={chart}
-                                    options={{
-                                        responsive: true,
-                                        plugins: {
-                                            legend: { position: "top" },
-                                            title: {
-                                                display: true,
-                                                text: `Graph for ${chart.parameter}`,
-                                            },
-                                        },
-                                    }}
-                                />
-                            </div>
-                        );
-                    })}
-                    {timeSeriesData && (
-                        <div className="chart-section">
-                            <h2>Daily High Rates by Company</h2>
+                    {Object.entries(timeSeriesData).map(([param, data], index) => (
+                        <div key={index} className="chart-section">
+                            <h2>{param.toUpperCase()} Over Time</h2>
                             <Line
-                                data={timeSeriesData}
+                                data={data}
                                 options={{
                                     responsive: true,
                                     plugins: {
                                         legend: { position: "top" },
                                         title: {
                                             display: true,
-                                            text: "Time Series: Daily High Rates by Company",
+                                            text: `${param.toUpperCase()} Progression for All Companies`,
                                         },
                                     },
                                     scales: {
@@ -192,14 +108,14 @@ function Stats() {
                                         y: {
                                             title: {
                                                 display: true,
-                                                text: "Highest Rates",
+                                                text: param,
                                             },
                                         },
                                     },
                                 }}
                             />
                         </div>
-                    )}
+                    ))}
                 </>
             )}
         </div>
