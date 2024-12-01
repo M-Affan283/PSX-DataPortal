@@ -2,19 +2,20 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Chatbot.css";
 
-const FASTAPI_API = "http://localhost:8000"; // Ensure correct URL
+const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+// const FASTAPI_API = "http://localhost:8000"; 
 
 function Chatbot() {
-    const [question, setQuestion] = useState(""); // State to store the input question
-    const [selectedStock, setSelectedStock] = useState(""); // State to store the selected stock
-    const [stockData, setStockData] = useState([]); // State to store fetched stock data
-    const [filteredStockData, setFilteredStockData] = useState([]); // State to store filtered data (as an array)
-    const [isLoading, setIsLoading] = useState(false); // State to handle loading state
-    const [combinedData, setCombinedData] = useState(""); // State to store the combined string of stock data and user question
-    const [llmResponse, setLlmResponse] = useState(""); // State to store LLM response
-    const [isSubmitting, setIsSubmitting] = useState(false); // State to handle the submission state
+    const [question, setQuestion] = useState("");
+    const [selectedStock, setSelectedStock] = useState("");
+    const [stockData, setStockData] = useState([]);
+    const [filteredStockData, setFilteredStockData] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [combinedData, setCombinedData] = useState("");
+    const [llmResponse, setLlmResponse] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // List of stocks for the dropdown
+
     const stockOptions = [
         'Air Link Commun',
         'Avanceon Ltd',
@@ -35,9 +36,9 @@ function Chatbot() {
         'WorldCall'
     ];
 
-    // Fetch data for stocks when the component mounts
     useEffect(() => {
-        const FASTAPI_API = "localhost:8000"; // Do not add 'http://' here
+
+        // const FASTAPI_API = "localhost:8000"; 
 
         const fetchData = async () => {
             try {
@@ -59,7 +60,6 @@ function Chatbot() {
         fetchData();
     }, []);
 
-    // Filter stock data whenever the selected stock changes
     useEffect(() => {
         if (selectedStock) {
             const filteredData = stockData.filter(
@@ -71,7 +71,6 @@ function Chatbot() {
         }
     }, [selectedStock, stockData]);
 
-    // Combine stock data and user question into a string
     const combineData = () => {
         let stockDataString = "Stock Data:\n";
         if (filteredStockData.length > 0) {
@@ -88,57 +87,54 @@ function Chatbot() {
         setCombinedData(stockDataString);
     };
 
-    // Handle submit button click
-    // Handle submit button click
-const handleSubmit = async () => {
-    if (!selectedStock || !question.trim()) {
-        alert("Please select a stock and enter a question.");
-        return;
-    }
-    combineData(); // Combine data when the submit button is clicked
-    setIsSubmitting(true);
 
-    try {
-        const response = await fetch(`${FASTAPI_API}/ask_llm`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                user_prompt: question,
-                stock_data: combinedData,
-            }),
-        });
 
-        if (response.ok) {
-            const data = await response.json();
-            console.log("LLM Response Length:", data.llm_response.length);  // Log response length
-            console.log("LLM Response:", data.llm_response);
-
-            // Format LLM response
-            const formattedResponse = formatLlmResponse(data.llm_response);
-            setLlmResponse(formattedResponse); // Store the formatted LLM response in state
-        } else {
-            console.error("Failed to get LLM response.");
+    const handleSubmit = async () => {
+        if (!selectedStock || !question.trim()) {
+            alert("Please select a stock and enter a question.");
+            return;
         }
-    } catch (error) {
-        console.error("Error sending data to LLM:", error);
-    } finally {
-        setIsSubmitting(false);
-    }
-};
+        combineData();
+        setIsSubmitting(true);
 
-// Function to format the LLM response (splitting into lines or sections)
-const formatLlmResponse = (response) => {
-    // Example: If the response includes numbered points, split by newlines
-    const responseLines = response.split("\n");
+        try {
+            const response = await fetch(`${FASTAPI_API}/ask_llm`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_prompt: question,
+                    stock_data: combinedData,
+                }),
+            });
 
-    // Map over the response lines and create a structured display (e.g., bullet points)
-    return responseLines.map((line, index) => {
-        if (line.trim() === "") return null;
-        return <p key={index} className="llm-line">{line}</p>;
-    });
-};
+            if (response.ok) {
+                const data = await response.json();
+                console.log("LLM Response Length:", data.llm_response.length);
+                console.log("LLM Response:", data.llm_response);
+
+
+                const formattedResponse = formatLlmResponse(data.llm_response);
+                setLlmResponse(formattedResponse);
+            } else {
+                console.error("Failed to get LLM response.");
+            }
+        } catch (error) {
+            console.error("Error sending data to LLM:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const formatLlmResponse = (response) => {
+        const responseLines = response.split("\n");
+
+        return responseLines.map((line, index) => {
+            if (line.trim() === "") return null;
+            return <p key={index} className="llm-line">{line}</p>;
+        });
+    };
 
 
     return (
