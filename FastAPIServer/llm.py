@@ -27,6 +27,7 @@ def get_stock_market_response(user_prompt):
                     "You can predict stock trends, analyze the performance of stocks, and answer general questions about the stock market. "
                     "You are knowledgeable about market patterns, financial analysis, and trading strategies. "
                     "Your goal is to assist users with stock-related inquiries and provide insights. "
+                    "You must keep your responses consize and to the point."
                     f"Here is a user's question: {user_prompt}"
                 )
             }

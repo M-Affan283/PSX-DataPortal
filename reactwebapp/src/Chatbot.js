@@ -56,9 +56,8 @@ function Chatbot() {
             }
         };
 
-
-                fetchData();
-            }, []);
+        fetchData();
+    }, []);
 
     // Filter stock data whenever the selected stock changes
     useEffect(() => {
@@ -90,38 +89,57 @@ function Chatbot() {
     };
 
     // Handle submit button click
-    const handleSubmit = async () => {
-        if (!selectedStock || !question.trim()) {
-            alert("Please select a stock and enter a question.");
-            return;
-        }
-        combineData(); // Combine data when the submit button is clicked
-        setIsSubmitting(true);
+    // Handle submit button click
+const handleSubmit = async () => {
+    if (!selectedStock || !question.trim()) {
+        alert("Please select a stock and enter a question.");
+        return;
+    }
+    combineData(); // Combine data when the submit button is clicked
+    setIsSubmitting(true);
 
-        try {
-            const response = await fetch(`${FASTAPI_API}/ask_llm`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    user_prompt: question,
-                    stock_data: combinedData,
-                }),
-            });
+    try {
+        const response = await fetch(`${FASTAPI_API}/ask_llm`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                user_prompt: question,
+                stock_data: combinedData,
+            }),
+        });
 
-            if (response.ok) {
-                const data = await response.json();
-                setLlmResponse(data.llm_response); // Store LLM response in state
-            } else {
-                console.error("Failed to get LLM response.");
-            }
-        } catch (error) {
-            console.error("Error sending data to LLM:", error);
-        } finally {
-            setIsSubmitting(false);
+        if (response.ok) {
+            const data = await response.json();
+            console.log("LLM Response Length:", data.llm_response.length);  // Log response length
+            console.log("LLM Response:", data.llm_response);
+
+            // Format LLM response
+            const formattedResponse = formatLlmResponse(data.llm_response);
+            setLlmResponse(formattedResponse); // Store the formatted LLM response in state
+        } else {
+            console.error("Failed to get LLM response.");
         }
-    };
+    } catch (error) {
+        console.error("Error sending data to LLM:", error);
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
+// Function to format the LLM response (splitting into lines or sections)
+const formatLlmResponse = (response) => {
+    // Example: If the response includes numbered points, split by newlines
+    const responseLines = response.split("\n");
+
+    // Map over the response lines and create a structured display (e.g., bullet points)
+    return responseLines.map((line, index) => {
+        if (line.trim() === "") return null;
+        return <p key={index} className="llm-line">{line}</p>;
+    });
+};
+
 
     return (
         <div className="chatbot-container">
@@ -165,47 +183,54 @@ function Chatbot() {
                 />
             </div>
 
-            {/* Show Filtered Data */}
-            {isLoading ? (
-                <p>Loading stock data...</p>
-            ) : filteredStockData.length > 0 ? (
-                <div className="stock-details">
-                    <h2>Stock Details for {selectedStock}</h2>
-                    {filteredStockData
-                        .sort((a, b) => new Date(b.date) - new Date(a.date))
-                        .slice(0, 1)
-                        .map((data, index) => (
-                            <div key={index} className="stock-item">
-                                <p>Date: {data.date}</p>
-                                <p>Turnover: {data.turnover}</p>
-                                <p>Previous Rate: {data.prev_rate}</p>
-                                <p>Open Rate: {data.open_rate}</p>
-                                <p>Last Rate: {data.last_rate}</p>
-                                <p>Highest Rate: {data.highest_rate}</p>
-                                <p>Lowest Rate: {data.lowest_rate}</p>
-                            </div>
-                        ))}
-                </div>
-            ) : (
-                selectedStock && <p>No data found for {selectedStock}.</p>
-            )}
+            {/* Box Layout for Stock Details & Submit Button, and LLM Response */}
+            <div className="box-layout">
+                <div className="stock-details-box">
+                    {/* Show Filtered Data */}
+                    {isLoading ? (
+                        <p>Loading stock data...</p>
+                    ) : filteredStockData.length > 0 ? (
+                        <div className="stock-details">
+                            <h2>Stock Details for {selectedStock}</h2>
+                            {filteredStockData
+                                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                .slice(0, 1)
+                                .map((data, index) => (
+                                    <div key={index} className="stock-item">
+                                        <p>Date: {data.date}</p>
+                                        <p>Turnover: {data.turnover}</p>
+                                        <p>Previous Rate: {data.prev_rate}</p>
+                                        <p>Open Rate: {data.open_rate}</p>
+                                        <p>Last Rate: {data.last_rate}</p>
+                                        <p>Highest Rate: {data.highest_rate}</p>
+                                        <p>Lowest Rate: {data.lowest_rate}</p>
+                                    </div>
+                                ))}
+                        </div>
+                    ) : (
+                        selectedStock && <p>No data found for {selectedStock}.</p>
+                    )}
 
-            {/* Submit Button */}
-            <button
-                className="submit-button"
-                onClick={handleSubmit} 
-                disabled={isSubmitting} // Disable button while submitting
-            >
-                {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
-
-            {/* Display LLM Response */}
-            {llmResponse && (
-                <div className="llm-response">
-                    <h2>LLM Response:</h2>
-                    <p>{llmResponse}</p>
+                    {/* Submit Button */}
+                    <button
+                        className="submit-button"
+                        onClick={handleSubmit}
+                        disabled={isSubmitting} // Disable button while submitting
+                    >
+                        {isSubmitting ? "Submitting..." : "Submit"}
+                    </button>
                 </div>
-            )}
+
+                <div className="llm-response-box">
+                    {/* Display LLM Response */}
+                    {llmResponse && (
+                        <div className="llm-response">
+                            <h2>LLM Response:</h2>
+                            <p>{llmResponse}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

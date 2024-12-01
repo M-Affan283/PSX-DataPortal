@@ -132,3 +132,64 @@ button:disabled {
         font-size: 14px;
     }
 }
+
+/* General layout for the chatbot container */
+.chatbot-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+/* Layout for the box containing both sections */
+.box-layout {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+/* Style for the stock details and submit box */
+.stock-details-box {
+    width: 48%; /* Adjust the width of this box */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Style for the LLM response box */
+.llm-response-box {
+    width: 48%; /* Adjust the width of this box */
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure the boxes are not too close to each other */
+.stock-details-box, .llm-response-box {
+    margin-right: 10px;
+}
+
+/* Additional styling for other elements */
+.submit-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-button:disabled {
+    background-color: #ddd;
+    cursor: not-allowed;
+}
+
+.llm-response {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e9f5ff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
