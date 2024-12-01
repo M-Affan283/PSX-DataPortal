@@ -44,7 +44,7 @@ function App() {
                             },
                             body: JSON.stringify(payload),
                         }),
-                        fetch(`${FASTAPI_API}/upload`, {
+                        fetch(`http://${FASTAPI_API}/upload`, {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",
@@ -123,7 +123,7 @@ function App() {
         const fetchDataForGraph = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`${FASTAPI_API}/getData`);
+                const response = await fetch(`http://${FASTAPI_API}/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     console.log(data);
