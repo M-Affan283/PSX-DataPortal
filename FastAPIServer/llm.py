@@ -2,7 +2,7 @@ import boto3
 import json
 
 aws_access_key_id = your key
-aws_secret_access_key = your key 
+aws_secret_access_key = your key
 region_name = 'us-east-1' 
 
 session = boto3.Session(
@@ -45,6 +45,6 @@ def get_stock_market_response(user_prompt):
     return generated_text
 
 # example promtt
-user_prompt = "What are the top-performing stocks in the tech sector this month?"
-response = get_stock_market_response(user_prompt)
-print("Stock Market Response:", response)
+# user_prompt = "What are the top-performing stocks in the tech sector this month?"
+# response = get_stock_market_response(user_prompt)
+# print("Stock Market Response:", response)
