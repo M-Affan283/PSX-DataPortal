@@ -8,7 +8,8 @@ import "./App.css"; // Add a CSS file for styling
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const LAMBDA_API = process.env.REACT_APP_LAMBDA_API;
-const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+// const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+const FASTAPI_API = "localhost:8000";
 
 function App() {
     const [file, setFile] = useState(null);
@@ -147,6 +148,7 @@ function App() {
             <nav className="nav-bar">
                 <Link to="/" className="nav-link">Home</Link>
                 <Link to="/stats" className="nav-link">Stats</Link>
+                <Link to="/chatbot" className="nav-link">AI Chatbot</Link>
             </nav>
 
             {/* File Upload Section */}

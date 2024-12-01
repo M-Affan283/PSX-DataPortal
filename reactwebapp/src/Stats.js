@@ -7,7 +7,8 @@ import "./Stats.css";
 ChartJS.register(CategoryScale, LinearScale, RadialLinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend, ArcElement, TimeScale
 );
 
-const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+// const FASTAPI_API = process.env.REACT_APP_FASTAPI;
+const FASTAPI_API = "localhost:8000";
 
 function Stats() {
     const [timeSeriesData, setTimeSeriesData] = useState({});
