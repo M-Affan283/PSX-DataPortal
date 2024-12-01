@@ -1,8 +1,12 @@
 import boto3
 import json
+import os
+from dotenv import load_dotenv
 
-aws_access_key_id = your key
-aws_secret_access_key = your key
+load_dotenv(".env.local")
+
+aws_access_key_id = os.getenv("ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("SECRET_ACCESS_KEY")
 region_name = 'us-east-1' 
 
 session = boto3.Session(

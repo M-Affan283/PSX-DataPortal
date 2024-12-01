@@ -98,7 +98,7 @@ function Chatbot() {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch(`${FASTAPI_API}/ask_llm`, {
+            const response = await fetch(`http://${FASTAPI_API}/ask_llm`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
