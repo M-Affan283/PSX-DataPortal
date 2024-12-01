@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 import datetime
 import base64
+from llm import get_stock_market_response
 
 # Load environment variables from .env.local
 load_dotenv(".env.local")
@@ -255,4 +256,32 @@ async def get_data():
     except Exception as e:
         print("[SERVER ERROR] In getData route, Error: ", e)
         raise ValueError(f"Error while trying to get Data from DB Error: {e}")
+
+
+class LLMRequestPayload(BaseModel):
+    user_prompt: str
+    stock_data: str
+
+# Add the endpoint to interact with the LLM
+@app.post("/ask_llm")
+async def ask_llm(payload: LLMRequestPayload):
+    try:
+        # Extract data from the payload
+        user_prompt = payload.user_prompt
+        stock_data = payload.stock_data
+        
+        # Here, you could combine stock_data with the user_prompt if necessary
+        combined_prompt = f"Stock Data: {stock_data}\n{user_prompt}"
+
+        # Call the LLM function to get the response
+        llm_response = get_stock_market_response(combined_prompt)
+        
+        # Return the LLM response as JSON
+        return JSONResponse(content={"llm_response": llm_response})
+    
+    except Exception as e:
+        # Handle any errors that may occur
+        print(f"[SERVER ERROR] In ask_llm route, Error: {e}")
+        raise HTTPException(status_code=500, detail=f"Error while getting LLM response: {e}")
+
 

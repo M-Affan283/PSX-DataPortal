@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./Chatbot.css";
 
-const FASTAPI_API = "localhost:8000";
+const FASTAPI_API = "http://localhost:8000"; // Ensure correct URL
 
 function Chatbot() {
     const [question, setQuestion] = useState(""); // State to store the input question
@@ -11,6 +11,8 @@ function Chatbot() {
     const [filteredStockData, setFilteredStockData] = useState([]); // State to store filtered data (as an array)
     const [isLoading, setIsLoading] = useState(false); // State to handle loading state
     const [combinedData, setCombinedData] = useState(""); // State to store the combined string of stock data and user question
+    const [llmResponse, setLlmResponse] = useState(""); // State to store LLM response
+    const [isSubmitting, setIsSubmitting] = useState(false); // State to handle the submission state
 
     // List of stocks for the dropdown
     const stockOptions = [
@@ -35,6 +37,8 @@ function Chatbot() {
 
     // Fetch data for stocks when the component mounts
     useEffect(() => {
+        const FASTAPI_API = "localhost:8000"; // Do not add 'http://' here
+
         const fetchData = async () => {
             try {
                 setIsLoading(true);
@@ -52,38 +56,28 @@ function Chatbot() {
             }
         };
 
-        fetchData();
-    }, []);
+
+                fetchData();
+            }, []);
 
     // Filter stock data whenever the selected stock changes
     useEffect(() => {
         if (selectedStock) {
-            // Filter data to get all entries for the selected stock
             const filteredData = stockData.filter(
                 (stock) => stock.company_name === selectedStock
             );
-            setFilteredStockData(filteredData); // Store the filtered data as an array
+            setFilteredStockData(filteredData);
         } else {
-            setFilteredStockData([]); // If no stock is selected, set filteredData to empty array
+            setFilteredStockData([]);
         }
     }, [selectedStock, stockData]);
-
-    // Log filtered stock data when it changes
-    useEffect(() => {
-        if (filteredStockData.length > 0) {
-            console.log("Filtered Stock Data:", filteredStockData);
-        }
-    }, [filteredStockData]);
 
     // Combine stock data and user question into a string
     const combineData = () => {
         let stockDataString = "Stock Data:\n";
-
-        // Combine stock details into a string
         if (filteredStockData.length > 0) {
             filteredStockData
-                .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort in descending order
-                // .slice(0, 1) // Get the first (latest) entry
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
                 .forEach((data) => {
                     stockDataString += `Date: ${data.date}, Turnover: ${data.turnover}, Previous Rate: ${data.prev_rate}, Open Rate: ${data.open_rate}, Last Rate: ${data.last_rate}, Highest Rate: ${data.highest_rate}, Lowest Rate: ${data.lowest_rate}\n`;
                 });
@@ -91,30 +85,43 @@ function Chatbot() {
             stockDataString += "No stock data available.\n";
         }
 
-        // Add the user question to the string
         stockDataString += `User Question: ${question}\n`;
-        console.log("Combined Dataaa:", stockDataString); // Log the combined string
-        // Set the combined string into state
         setCombinedData(stockDataString);
     };
 
-    useEffect(() => {
-        if (combinedData) {
-            console.log("Submitting data:", combinedData);
-        }
-    }, [combinedData]); // This will run every time combinedData changes
-    
-
     // Handle submit button click
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!selectedStock || !question.trim()) {
             alert("Please select a stock and enter a question.");
             return;
         }
         combineData(); // Combine data when the submit button is clicked
-        alert(`Your question about ${selectedStock}: ${question}`);
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch(`${FASTAPI_API}/ask_llm`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    user_prompt: question,
+                    stock_data: combinedData,
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setLlmResponse(data.llm_response); // Store LLM response in state
+            } else {
+                console.error("Failed to get LLM response.");
+            }
+        } catch (error) {
+            console.error("Error sending data to LLM:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
-    
 
     return (
         <div className="chatbot-container">
@@ -164,10 +171,9 @@ function Chatbot() {
             ) : filteredStockData.length > 0 ? (
                 <div className="stock-details">
                     <h2>Stock Details for {selectedStock}</h2>
-                    {/* Sort the data by date in descending order and display the latest entry */}
                     {filteredStockData
-                        .sort((a, b) => new Date(b.date) - new Date(a.date)) // Sort in descending order
-                        .slice(0, 1) // Get the first (latest) entry
+                        .sort((a, b) => new Date(b.date) - new Date(a.date))
+                        .slice(0, 1)
                         .map((data, index) => (
                             <div key={index} className="stock-item">
                                 <p>Date: {data.date}</p>
@@ -187,10 +193,19 @@ function Chatbot() {
             {/* Submit Button */}
             <button
                 className="submit-button"
-                onClick={handleSubmit} // Trigger handleSubmit on click
+                onClick={handleSubmit} 
+                disabled={isSubmitting} // Disable button while submitting
             >
-                Submit
+                {isSubmitting ? "Submitting..." : "Submit"}
             </button>
+
+            {/* Display LLM Response */}
+            {llmResponse && (
+                <div className="llm-response">
+                    <h2>LLM Response:</h2>
+                    <p>{llmResponse}</p>
+                </div>
+            )}
         </div>
     );
 }
