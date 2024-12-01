@@ -13,10 +13,10 @@ fastapi-env
 .terraform*
 terraform*
 temp.pdf
-TerraformDeployment/Main/.terraform
-TerraformDeployment/Main/.terraform.lock.hcl
-TerraformDeployment/Main/*.tfstate
-TerraformDeployment/Main/*.tfstate.backup
+# TerraformDeployment/Main/.terraform
+# TerraformDeployment/Main/.terraform.lock.hcl
+# TerraformDeployment/Main/*.tfstate
+# TerraformDeployment/Main/*.tfstate.backup
 
 # Node.js
 node_modules/

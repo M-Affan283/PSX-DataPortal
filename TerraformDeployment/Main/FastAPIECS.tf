@@ -7,7 +7,7 @@ resource "aws_ecs_task_definition" "fastapi_task_definition" {
     task_role_arn = aws_iam_role.ecs_task_execution_role.arn
     container_definitions = jsonencode([{
         name = "ecr-fastapi-app"
-        image = "241533118783.dkr.ecr.us-east-1.amazonaws.com/fastapiserver:latest"
+        image = var.fastapi_image
         memory = 1024 //1GB
         cpu = 512 //0.5 vCPU
         portMappings = [{
@@ -53,6 +53,38 @@ resource "aws_ecs_service" "fastapi_service" {
   
 }
 
+//AUto scaling for FastAPI service
+
+resource "aws_appautoscaling_target" "fastapi_service_as_target" {
+    max_capacity = 3
+    min_capacity = 1
+    resource_id = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.fastapi_service.name}"
+    scalable_dimension = "ecs:service:DesiredCount"
+    service_namespace = "ecs"
+  
+}
+
+//Scale up policy
+resource "aws_appautoscaling_policy" "fastapi_service_scaling_policy" {
+    name = "fastapi-service-scale-up-policy"
+    policy_type = "TargetTrackingScaling" //Scale based on target value
+    resource_id = aws_appautoscaling_target.fastapi_service_as_target.resource_id
+    scalable_dimension = aws_appautoscaling_target.fastapi_service_as_target.scalable_dimension
+    service_namespace = aws_appautoscaling_target.fastapi_service_as_target.service_namespace
+  
+    target_tracking_scaling_policy_configuration {
+        predefined_metric_specification {
+            predefined_metric_type = "ECSServiceAverageCPUUtilization"
+        }
+        target_value = 50.0
+        scale_in_cooldown = 60
+        scale_out_cooldown = 60
+    }
+    
+  
+    depends_on = [aws_appautoscaling_target.fastapi_service_as_target]
+}
+
 
 //CLOUDWATCH + SNS ALARM FOR ANY ERROR IN FASTAPI SERVICE
 
@@ -92,5 +124,5 @@ resource "aws_sns_topic" "fastapi_alerts" {
 resource "aws_sns_topic_subscription" "fastapi_alerts_subscription" {
     topic_arn = aws_sns_topic.fastapi_alerts.arn
     protocol = "email"
-    endpoint = "<your-email>"
+    endpoint = var.sns_email
 }
