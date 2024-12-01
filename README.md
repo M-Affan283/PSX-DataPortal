@@ -73,17 +73,19 @@ Open the `variables.tf` file, where you will find the definitons of 2 variables:
 Paste your Image URI you copied in the `fastapi_image` default line and provide an email in the default line of `sns_email` to specify where you would like to receive the emails in case of any alarm in the server.
 
 ```json
-variable "fastapi_image" {
-    description = "FastAPI Docker image"
-    type = string
-    default = "<your-fastapi-image>"
-}
 
-variable "sns_email" {
-    description = "Email to send SNS notifications"
-    type = string
-    default = "<your-email>"
-}
+  variable "fastapi_image" {
+      description = "FastAPI Docker image"
+      type = string
+      default = "<your-fastapi-image>"
+  }
+
+  variable "sns_email" {
+      description = "Email to send SNS notifications"
+      type = string
+      default = "<your-email>"
+  }
+
 ```
 
 Once the variables have been added run the following commands to provision the AWS services.
