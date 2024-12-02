@@ -32,8 +32,9 @@ function Stats() {
                 return {
                     label: company,
                     data: values,
-                    fill: false,
+                    fill: true,
                     borderColor: graphColors[index % graphColors.length], // Cycle through colors
+                    backgroundColor: graphColors[index % graphColors.length],
                     tension: 0.1,
                 };
             });
@@ -98,6 +99,19 @@ function Stats() {
                                             display: true,
                                             text: `${param.toUpperCase()} Progression for All Companies`,
                                         },
+                                        tooltip: {
+                                            enabled: true,
+                                            // mode: "index",
+                                            intersect: false,
+                                            callbacks: {
+                                                label: (context) => {
+                                                const datasetLabel = context.dataset.label || '';
+                                                const value = context.raw;
+                                                return `${datasetLabel}: ${value}`;
+                                                },
+
+                                            }
+                                        }
                                     },
                                     scales: {
                                         x: {
