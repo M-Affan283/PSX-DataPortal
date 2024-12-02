@@ -145,6 +145,7 @@ function Chatbot() {
             <nav className="nav-bar">
                 <Link to="/" className="nav-link">Home</Link>
                 <Link to="/stats" className="nav-link">Stats</Link>
+                <Link to="/chatbot" className="nav-link">AI Chatbot</Link>
             </nav>
 
             {/* Input Section */}

@@ -75,11 +75,12 @@ function Stats() {
 
     return (
         <div className="stats-container">
+            <h1>Company Data Analysis</h1>
             <nav className="nav-bar">
                 <Link to="/" className="nav-link">Home</Link>
                 <Link to="/stats" className="nav-link">Stats</Link>
+                <Link to="/chatbot" className="nav-link">AI Chatbot</Link>
             </nav>
-            <h1>Company Data Analysis</h1>
             {isLoading ? (
                 <p>Loading data...</p>
             ) : (
