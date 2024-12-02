@@ -224,3 +224,10 @@ $ terraform apply --auto-approve
 $ terraform destroy --auto-approve
 ```
 The command will output the URL for the webite which you can use to access it via your browser.
+
+References:
+
+1. https://snehalchaure.medium.com/deploy-a-dockerised-app-on-amazon-elastic-container-service-ecs-using-terraform-e7c92d9814ee
+2. https://medium.com/@frankpromiseedah/hosting-a-static-website-on-aws-s3-using-terraform-e12addd22d18
+3. https://medium.com/@alidu143/containerizing-fastapi-app-with-docker-a-comprehensive-guide-416521b2457c
+4. Any missing pieces or runtime challenges that could not be solved through online forums and documentation were resolved with the assistance of ChatGPT. (https://chat.openai.com/)
