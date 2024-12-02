@@ -32,6 +32,46 @@ These configurations are in the following subfolders:
 2. `LambdaDeployment` ----> Contains files to deploy Lambda function.
 3. `reactwebapp` ----> Contains files to host the react application.
 
+The following diagram shows a brief folder structure of the project:
+
+```
+.
+└── PSX-DARAPORTAL/
+    ├── Dataset/
+    ├── FastAPIServer/
+    │   ├── Dockerfile
+    │   ├── requirements.txt
+    │   ├── llm.py
+    │   ├── main.py
+    │   └── parser.py
+    ├── reactwebapp/
+    │   ├── public/
+    │   ├── src/
+    │   ├── .dockerignore
+    │   ├── .gitignore
+    │   ├── Dockerfile
+    │   ├── package-lock.json
+    │   ├── package.json
+    │   ├── README.md
+    │   └── S3Deployment.tf
+    ├── TerraformDeployment/
+    │   └── Main/
+    │       ├── FastAPIECS.tf
+    │       ├── iam.tf
+    │       ├── sg.tf
+    │       ├── lb.tf
+    │       ├── provider.tf
+    │       ├── reactECS.tf
+    │       ├── main.tf
+    │       ├── vpc.tf
+    │       └── variables.tf
+    ├── Testing/
+    │   ├── load_testing.yml
+    │   └── README.md
+    ├── .gitignore
+    └── README.md
+```
+
 <br>
 
 ### **<u>1. Deploying Fast API Server</u>**
@@ -150,7 +190,6 @@ $ terraform init
 $ terraform validate
 $ terraform plan
 $ terraform apply --auto-approve
-```
 
 
 
