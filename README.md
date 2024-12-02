@@ -135,11 +135,22 @@ To deploy the Lambda function, simply navigate to the `LambdaDeployment` directo
 
 ```shell
 $ cd LambdaDeployment
+```
 
+if the zip of lambda function does not exist, then create it via this command.
+
+```shell
+$ zip lambda_function.zip lambda_function.py
+```
+
+and then deploy on terraform
+
+```shell
 $ terraform init
 $ terraform validate
 $ terraform plan
 $ terraform apply --auto-approve
+```
 
 
 
