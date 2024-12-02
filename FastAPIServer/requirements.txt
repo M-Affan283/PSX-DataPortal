@@ -6,3 +6,4 @@ sqlalchemy
 python-dotenv
 asyncpg
 psycopg2-binary
+boto3
