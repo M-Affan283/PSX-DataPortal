@@ -57,7 +57,7 @@ function Stats() {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch(`http://${FASTAPI_API}/getData`);
+                const response = await fetch(`https://psx-dataportal.onrender.com/getData`);
                 if (response.ok) {
                     const data = await response.json();
                     processTimeSeriesData(data.data);
